@@ -528,7 +528,7 @@ class LateralVelocityTuner extends OpMode {
  */
 class ForwardZeroPowerAccelerationTuner extends OpMode {
     private final ArrayList<Double> accelerations = new ArrayList<>();
-    public static double VELOCITY = 30;
+    public static double VELOCITY = 60;
 
     private double previousVelocity;
     private long previousTimeNano;
@@ -632,7 +632,7 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
  */
 class LateralZeroPowerAccelerationTuner extends OpMode {
     private final ArrayList<Double> accelerations = new ArrayList<>();
-    public static double VELOCITY = 30;
+    public static double VELOCITY = 50;
     private double previousVelocity;
     private long previousTimeNano;
     private boolean stopping;
@@ -1189,10 +1189,10 @@ class Drawing {
     private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
 
     private static final Style robotLook = new Style(
-            "", "#3F51B5", 0.75
+            "", "#3F51B5", 0.0
     );
     private static final Style historyLook = new Style(
-            "", "#4CAF50", 0.75
+            "", "#4CAF50", 0.0
     );
 
     /**
@@ -1204,21 +1204,16 @@ class Drawing {
 
     /**
      * This draws everything that will be used in the Follower's telemetryDebug() method. This takes
-     * a Follower as an input, so an instance of the DashbaordDrawingHandler class is not needed.
+     * a Follower as an input, so an instance of the DashboardDrawingHandler class is not needed.
      *
      * @param follower Pedro Follower instance.
      */
     public static void drawDebug(Follower follower) {
-        if (follower.getCurrentPathChain() != null && follower.getCurrentPath() != null) {
-            drawPath(follower.getCurrentPathChain(), robotLook);
-            Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
-            drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())), robotLook);
-        } else if (follower.getCurrentPath() != null) {
+        if (follower.getCurrentPath() != null) {
             drawPath(follower.getCurrentPath(), robotLook);
             Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
             drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())), robotLook);
         }
-        
         drawPoseHistory(follower.getPoseHistory(), historyLook);
         drawRobot(follower.getPose(), historyLook);
 
@@ -1278,10 +1273,8 @@ class Drawing {
         }
 
         panelsField.setStyle(style);
-        for (int i = 0; i < points[0].length - 1; i++) {
-            panelsField.moveCursor(points[0][i], points[1][i]);
-            panelsField.line(points[0][i + 1], points[1][i + 1]);
-        }
+        panelsField.moveCursor(points[0][0], points[0][1]);
+        panelsField.line(points[1][0], points[1][1]);
     }
 
     /**
