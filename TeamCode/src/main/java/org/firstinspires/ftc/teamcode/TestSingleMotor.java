@@ -5,31 +5,52 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@TeleOp(name = "test")
+@TeleOp(name = "TestSingleMotor")
 public class TestSingleMotor extends LinearOpMode {
 
-    private DcMotor testMotor;
+    private DcMotor intake;
+    private DcMotor spindex;
+    private double speedI = 0.5;
+    private double speedS = 0.5;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        testMotor = hardwareMap.dcMotor.get("test");
+        intake = hardwareMap.dcMotor.get("intake");
+        spindex = hardwareMap.dcMotor.get("spindex");
 
         waitForStart();
         while(opModeIsActive()) {
             if (gamepad1.a) {
-                testMotor.setPower(0.5);
+                intake.setPower(speedI);
             }
             if (gamepad1.b) {
-                testMotor.setPower(-0.5);
+                intake.setPower(-speedI);
             }
             if (gamepad1.x) {
-                testMotor.setPower(1);
+                spindex.setPower(speedS);
             }
             if (gamepad1.y) {
-                testMotor.setPower(-1);
+                spindex.setPower(-speedS);
             }
-            testMotor.setPower(0);
+            if(gamepad1.left_bumper){
+                speedI = 0.5;
+            }
+            if(gamepad1.right_bumper){
+                speedI = 1;
+            }
+            if(gamepad1.left_trigger > 0){
+                speedS = 0.5;
+            }
+            if(gamepad1.right_trigger > 0){
+                speedS = 1;
+            }
+
+            StopMoving();
         }
 
+    }
+    public void StopMoving(){
+        intake.setPower(0);
+        spindex.setPower(0);
     }
 }
