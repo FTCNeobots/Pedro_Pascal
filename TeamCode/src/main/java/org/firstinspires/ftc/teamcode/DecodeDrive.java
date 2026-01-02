@@ -89,7 +89,7 @@ public class DecodeDrive extends OpMode {
         botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-        telemetry.addData("servo pos: ", outtakeServo.getPosition());
+        telemetry.addData("Target pos ", targetPosition);
         telemetry.addData("Spindex pos: ", spindex.getCurrentPosition());
 
         telemetry.update();
@@ -141,7 +141,7 @@ public class DecodeDrive extends OpMode {
                 position = targetPosition;
                 spindexRunning = true;
             }
-        }else{
+        }else if(spindexRunning){
             spindex.setPower(1);
             if(abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) < 5){
                 spindexRunning = false;
