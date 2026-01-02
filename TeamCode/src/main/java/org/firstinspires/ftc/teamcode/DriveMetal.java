@@ -21,8 +21,6 @@ public class DriveMetal extends LinearOpMode {
     private DcMotor rightBackDrive;
     private DcMotor flywheel;
     private Servo servo;
-
-
     private double maxSpeed = 0.5;
     private double botHeading;
     private double turnSpeed = 2;

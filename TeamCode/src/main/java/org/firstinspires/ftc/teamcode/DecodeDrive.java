@@ -1,0 +1,235 @@
+package org.firstinspires.ftc.teamcode;
+
+import static java.lang.Math.abs;
+
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+@TeleOp(name = "DecodeDrive")
+public class DecodeDrive extends OpMode {
+
+    private DcMotor intake;
+    private DcMotor spindex;
+    private DcMotor leftFrontDrive;
+    private DcMotor rightFrontDrive;
+    private DcMotor leftBackDrive;
+    private DcMotor rightBackDrive;
+    private DcMotor flywheel;
+    private Servo outtakeServo;
+    private double maxSpeed = 1;
+    private double botHeading;
+    private double turnSpeed = 1;
+    private int position = 1;
+    private int ticksBetween = 445;
+    boolean spindexRunning = false;
+    private int targetPosition = 1;
+    private boolean ballAt1 = false;
+    private boolean ballAt2 = false;
+    private boolean ballAt3 = false;
+    public boolean ballAtCurrentValue = false;
+    public double servoOut = 0.8;
+    public double servoIn = 0.2;
+    private DigitalChannel servoClosed;
+    IMU imu;
+
+    @Override
+    public void init() {
+        intake = hardwareMap.dcMotor.get("intake");
+        spindex = hardwareMap.dcMotor.get("spindex");
+        spindex.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftBackDrive = hardwareMap.dcMotor.get("leftBack");
+        leftFrontDrive = hardwareMap.dcMotor.get("leftFront");
+        rightBackDrive = hardwareMap.dcMotor.get("rightBack");
+        rightFrontDrive = hardwareMap.dcMotor.get("rightFront");
+
+        outtakeServo = hardwareMap.get(Servo.class, "servo");
+
+        servoClosed = hardwareMap.get(DigitalChannel.class, "switch");
+        servoClosed.setMode(DigitalChannel.Mode.INPUT);
+
+        flywheel = hardwareMap.dcMotor.get("flywheel");
+
+        rightFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        //dit hoort niet te hoeven, maar zo werkt het?
+        //leftBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        //leftFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        imu = hardwareMap.get(IMU.class, "imu");
+        // Adjust the orientation parameters to match your robot
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        imu.initialize(parameters);
+    }
+
+    @Override
+    public void loop() {
+        //flywheel.setPower(-1);
+        if (gamepad1.back) {
+            imu.resetYaw();
+            telemetry.addData("Yaw ", "reset!");
+
+        }
+
+        SpindexPositioning();
+        ControlIntake();
+        SpindexCycling();
+
+        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+        telemetry.addData("servo pos: ", outtakeServo.getPosition());
+        telemetry.addData("Spindex pos: ", spindex.getCurrentPosition());
+
+        telemetry.update();
+    }
+    private void NormalDrive(double _Xget, double _Yget, double _Turnget) {
+
+        double _X = _Xget * Math.cos(botHeading) - _Yget * Math.sin(botHeading);
+        double _Y = _Xget * Math.sin(botHeading) + _Yget * Math.cos(botHeading);
+        ///die negatief hoort niet te hoeven, maar helpt wel
+        double _Turn = -_Turnget * turnSpeed;
+        _X = _X * 1.1;
+
+
+        double _LFSpeed = MathLogic.Clamp(_Y - _X + _Turn, -1, 1) * maxSpeed;
+        double _LBSpeed = MathLogic.Clamp(_Y + _X + _Turn, -1, 1) * maxSpeed;
+        double _RBSpeed = MathLogic.Clamp(_Y - _X - _Turn, -1, 1) * maxSpeed;
+        double _RFSpeed = MathLogic.Clamp(_Y + _X - _Turn, -1, 1) * maxSpeed;
+
+        leftFrontDrive.setPower(_LFSpeed);
+        leftBackDrive.setPower(_LBSpeed);
+        rightBackDrive.setPower(_RBSpeed);
+        rightFrontDrive.setPower(_RFSpeed);
+
+    }
+    private void ControlIntake(){
+        if(gamepad1.left_trigger > 0){
+            intake.setPower(-1);
+        }
+        if(gamepad1.right_trigger > 0){
+            intake.setPower(1);
+        }
+        intake.setPower(0);
+    }
+    private void SpindexPositioning(){
+        if(!spindexRunning && !servoClosed.getState()){
+            spindex.setPower(0);
+            int targetDifference = targetPosition - position;
+            if(targetDifference == 1 | targetDifference == -2){
+                spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                spindex.setTargetPosition(ticksBetween);
+                spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                position = targetPosition;
+                spindexRunning = true;
+            }
+            if(targetDifference == 2 | targetDifference == -1){
+                spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                spindex.setTargetPosition(-ticksBetween);
+                spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                position = targetPosition;
+                spindexRunning = true;
+            }
+        }else{
+            spindex.setPower(1);
+            if(abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) < 5){
+                spindexRunning = false;
+            }
+        }
+    }
+    private void SpindexCycling(){
+
+        //moves the spindexer to a new intake position while saving that a ball is in the current position
+        if(gamepad1.right_bumper){
+            //change state of current ball location
+            if(position == 1){
+                ballAt1 = true;
+            }
+            if(position == 2){
+                ballAt2 = true;
+            }
+            if(position == 3){
+                ballAt3 = true;
+            }
+            //move to empty ball location
+            if(!ballAt1){
+                targetPosition = 1;
+            }else if(!ballAt2){
+                targetPosition = 2;
+            }else if (ballAt3){
+                targetPosition = 3;
+            }else{
+                telemetry.addData("Spindexer is ", "full");
+            }
+
+        }
+
+        //moves the spindexer to a new intake position without saving that a ball is in the current position
+        if(gamepad1.left_bumper){
+            //move to empty ball location
+            if(!ballAt1){
+                targetPosition = 1;
+            }else if(!ballAt2){
+                targetPosition = 2;
+            }else if (ballAt3){
+                targetPosition = 3;
+            }else{
+                telemetry.addData("Spindexer is ", "full");
+            }
+        }
+
+        //ejects a ball and saves that the current slot is empty
+        /// to do: change up the position by 1, clockwise or anticlockwise
+        /// to do: add the correct servo positions
+        if(gamepad1.dpad_up){
+            //checks if the current position is holding a ball
+            if(!ballAtCurrentValue) {
+                if (position == 1) {
+                    if (ballAt2) {
+                        ballAtCurrentValue = true;
+                    }
+                }else if (position == 2) {
+                    if (ballAt3) {
+                        ballAtCurrentValue = true;
+                    }
+                }else if (position == 3) {
+                    if (ballAt1) {
+                        ballAtCurrentValue = true;
+                    }
+                }else{
+                    //no ball at the current value, will move to a value with a ball
+                    if(ballAt1){
+                        targetPosition = 3;
+                    }else if(ballAt2){
+                        targetPosition = 1;
+                    }else if (ballAt3){
+                        targetPosition = 2;
+                    }else{
+                        telemetry.addData("No ", "balls!");
+                    }
+                }
+            }
+            //ejects the ball if there is one
+            if(ballAtCurrentValue && abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) < 5){
+                //servo position push
+                outtakeServo.setPosition(servoOut);
+                double time = getRuntime();
+                while(abs(getRuntime() - time) < 0.5){
+                }
+                    outtakeServo.setPosition(servoIn);
+                    ballAtCurrentValue = false;
+            }
+        }
+    }
+}
