@@ -82,6 +82,8 @@ public class DecodeDrive extends OpMode {
 
         }
 
+
+
         SpindexPositioning();
         ControlIntake();
         SpindexCycling();
@@ -90,7 +92,13 @@ public class DecodeDrive extends OpMode {
         NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         telemetry.addData("Target pos ", targetPosition);
+        telemetry.addData("Pos ", position);
         telemetry.addData("Spindex pos: ", spindex.getCurrentPosition());
+        telemetry.addData("Limit switch state: ", servoClosed.getState());
+
+        telemetry.addData("Ball at 1: ", ballAt1);
+        telemetry.addData("Ball at 2: ", ballAt2);
+        telemetry.addData("Ball at 3: ", ballAt3);
 
         telemetry.update();
     }
@@ -124,34 +132,40 @@ public class DecodeDrive extends OpMode {
         intake.setPower(0);
     }
     private void SpindexPositioning(){
-        if(!spindexRunning && !servoClosed.getState()){
-            spindex.setPower(0);
+
+        if(!spindexRunning && servoClosed.getState()){
             int targetDifference = targetPosition - position;
-            if(targetDifference == 1 | targetDifference == -2){
+            if(targetDifference == 1 || targetDifference == -2){
                 spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 spindex.setTargetPosition(ticksBetween);
                 spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 position = targetPosition;
                 spindexRunning = true;
             }
-            if(targetDifference == 2 | targetDifference == -1){
+            if(targetDifference == 2 || targetDifference == -1){
                 spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 spindex.setTargetPosition(-ticksBetween);
                 spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 position = targetPosition;
                 spindexRunning = true;
             }
-        }else if(spindexRunning){
+        }
+        if(spindexRunning){
             spindex.setPower(1);
             if(abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) < 5){
                 spindexRunning = false;
+
             }
+        }else{
+            spindex.setPower(0);
+            spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         }
     }
     private void SpindexCycling(){
 
         //moves the spindexer to a new intake position while saving that a ball is in the current position
-        if(gamepad1.right_bumper){
+        if(gamepad1.right_bumper && !spindexRunning){
             //change state of current ball location
             if(position == 1){
                 ballAt1 = true;
@@ -167,7 +181,7 @@ public class DecodeDrive extends OpMode {
                 targetPosition = 1;
             }else if(!ballAt2){
                 targetPosition = 2;
-            }else if (ballAt3){
+            }else if (!ballAt3){
                 targetPosition = 3;
             }else{
                 telemetry.addData("Spindexer is ", "full");
@@ -176,17 +190,37 @@ public class DecodeDrive extends OpMode {
         }
 
         //moves the spindexer to a new intake position without saving that a ball is in the current position
-        if(gamepad1.left_bumper){
+        if(gamepad1.left_bumper && !spindexRunning){
             //move to empty ball location
-            if(!ballAt1){
-                targetPosition = 1;
-            }else if(!ballAt2){
-                targetPosition = 2;
-            }else if (ballAt3){
-                targetPosition = 3;
-            }else{
-                telemetry.addData("Spindexer is ", "full");
+            if(position == 1) {
+                if (!ballAt2) {
+                    targetPosition = 2;
+                }
+                if (ballAt3) {
+                    targetPosition = 3;
+                }
             }
+            if(position == 2) {
+                if (!ballAt1) {
+                    targetPosition = 1;
+                }
+                if (ballAt3) {
+                    targetPosition = 3;
+                }
+            }
+            if(position == 3) {
+                if (!ballAt2) {
+                    targetPosition = 2;
+                }
+                if (ballAt1) {
+                    targetPosition = 1;
+                }
+            }
+
+
+
+
+
         }
 
         //ejects a ball and saves that the current slot is empty
@@ -198,37 +232,68 @@ public class DecodeDrive extends OpMode {
                 if (position == 1) {
                     if (ballAt2) {
                         ballAtCurrentValue = true;
+                    }else{
+                        //no ball at the current value, will move to a value with a ball
+                        if(ballAt1){
+                            targetPosition = 3;
+                        }else if(ballAt2){
+                            targetPosition = 1;
+                        }else if (ballAt3){
+                            targetPosition = 2;
+                        }else{
+                            telemetry.addData("No ", "balls!");
+                        }
                     }
                 }else if (position == 2) {
                     if (ballAt3) {
                         ballAtCurrentValue = true;
+                    }else{
+                        //no ball at the current value, will move to a value with a ball
+                        if(ballAt1){
+                            targetPosition = 3;
+                        }else if(ballAt2){
+                            targetPosition = 1;
+                        }else if (ballAt3){
+                            targetPosition = 2;
+                        }else{
+                            telemetry.addData("No ", "balls!");
+                        }
                     }
                 }else if (position == 3) {
                     if (ballAt1) {
                         ballAtCurrentValue = true;
-                    }
-                }else{
-                    //no ball at the current value, will move to a value with a ball
-                    if(ballAt1){
-                        targetPosition = 3;
-                    }else if(ballAt2){
-                        targetPosition = 1;
-                    }else if (ballAt3){
-                        targetPosition = 2;
                     }else{
-                        telemetry.addData("No ", "balls!");
+                        //no ball at the current value, will move to a value with a ball
+                        if(ballAt1){
+                            targetPosition = 3;
+                        }else if(ballAt2){
+                            targetPosition = 1;
+                        }else if (ballAt3){
+                            targetPosition = 2;
+                        }else{
+                            telemetry.addData("No ", "balls!");
+                        }
                     }
                 }
             }
             //ejects the ball if there is one
-            if(ballAtCurrentValue && abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) < 5){
+            if(ballAtCurrentValue && !spindexRunning){
                 //servo position push
                 outtakeServo.setPosition(servoOut);
                 double time = getRuntime();
-                while(abs(getRuntime() - time) < 0.5){
+                while(abs(getRuntime() - time) < 1){
                 }
-                    outtakeServo.setPosition(servoIn);
-                    ballAtCurrentValue = false;
+                outtakeServo.setPosition(servoIn);
+                ballAtCurrentValue = false;
+                if(position == 1){
+                        ballAt2 = false;
+                    }
+                if(position == 2){
+                    ballAt3 = false;
+                }
+                if(position == 3){
+                    ballAt1 = false;
+                }
             }
         }
     }
