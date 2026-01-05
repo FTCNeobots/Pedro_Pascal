@@ -77,7 +77,7 @@ public class DecodeDrive extends OpMode {
 
     @Override
     public void loop() {
-        //flywheel.setPower(-1);
+
         if (gamepad1.back) {
             imu.resetYaw();
             telemetry.addData("Yaw ", "reset!");
@@ -105,10 +105,13 @@ public class DecodeDrive extends OpMode {
         }
 
         ControlIntake();
-
-
+        FlywheelControl();
         botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+
+
+
 
         telemetry.addData("Target pos ", targetPosition);
         telemetry.addData("Pos ", position);
@@ -152,7 +155,6 @@ public class DecodeDrive extends OpMode {
 
     }
     private void SpindexPositioning(){
-
         if(!spindexRunning && servoClosed.getState()){
             int targetDifference = targetPosition - position;
             if(targetDifference == 1 || targetDifference == -2){
@@ -245,7 +247,7 @@ public class DecodeDrive extends OpMode {
 
         //ejects a ball and saves that the current slot is empty
         /// to do: add the correct servo positions
-        if(gamepad1.dpad_up){
+        if(gamepad1.b){
             //checks if the current position is holding a ball
             if(!ballAtCurrentValue) {
                 if (position == 1) {
@@ -303,6 +305,21 @@ public class DecodeDrive extends OpMode {
                 timerOn = true;
 
             }
+        }
+
+    }
+    public void FlywheelControl(){
+
+        boolean flywheelOn = true;
+        if(gamepad1.dpad_up){
+            flywheelOn = true;
+        }else if(gamepad1.dpad_down){
+            flywheelOn = false;
+        }
+        if(flywheelOn){
+            flywheel.setPower(-1);
+        }else{
+            flywheel.setPower(0);
         }
     }
 }
