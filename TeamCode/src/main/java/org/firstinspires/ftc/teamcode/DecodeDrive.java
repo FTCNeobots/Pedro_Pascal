@@ -38,6 +38,8 @@ public class DecodeDrive extends OpMode {
     public double servoOut = 0.8;
     public double servoIn = 0.2;
     private DigitalChannel servoClosed;
+    public boolean timerOn = false;
+    double time;
     IMU imu;
 
     @Override
@@ -82,11 +84,28 @@ public class DecodeDrive extends OpMode {
 
         }
 
+        if(!((getRuntime() - time) < 1)){
+            if(timerOn){
+                outtakeServo.setPosition(servoIn);
+                ballAtCurrentValue = false;
+                if(position == 1){
+                    ballAt2 = false;
+                }
+                if(position == 2){
+                    ballAt3 = false;
+                }
+                if(position == 3){
+                    ballAt1 = false;
+                }
+                timerOn = false;
+            }
 
+            SpindexPositioning();
+            SpindexCycling();
+        }
 
-        SpindexPositioning();
         ControlIntake();
-        SpindexCycling();
+
 
         botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
@@ -125,11 +144,12 @@ public class DecodeDrive extends OpMode {
     private void ControlIntake(){
         if(gamepad1.left_trigger > 0){
             intake.setPower(-1);
-        }
-        if(gamepad1.right_trigger > 0){
+        }else if(gamepad1.right_trigger > 0){
             intake.setPower(1);
+        }else{
+            intake.setPower(0);
         }
-        intake.setPower(0);
+
     }
     private void SpindexPositioning(){
 
@@ -224,7 +244,6 @@ public class DecodeDrive extends OpMode {
         }
 
         //ejects a ball and saves that the current slot is empty
-        /// to do: change up the position by 1, clockwise or anticlockwise
         /// to do: add the correct servo positions
         if(gamepad1.dpad_up){
             //checks if the current position is holding a ball
@@ -280,20 +299,9 @@ public class DecodeDrive extends OpMode {
             if(ballAtCurrentValue && !spindexRunning){
                 //servo position push
                 outtakeServo.setPosition(servoOut);
-                double time = getRuntime();
-                while(abs(getRuntime() - time) < 1){
-                }
-                outtakeServo.setPosition(servoIn);
-                ballAtCurrentValue = false;
-                if(position == 1){
-                        ballAt2 = false;
-                    }
-                if(position == 2){
-                    ballAt3 = false;
-                }
-                if(position == 3){
-                    ballAt1 = false;
-                }
+                time = getRuntime();
+                timerOn = true;
+
             }
         }
     }
