@@ -39,6 +39,7 @@ public class DecodeDrive extends OpMode {
     public double servoIn = 0.2;
     private DigitalChannel servoClosed;
     public boolean timerOn = false;
+    public boolean flywheelOn = true;
     double time;
     IMU imu;
 
@@ -310,7 +311,6 @@ public class DecodeDrive extends OpMode {
     }
     public void FlywheelControl(){
 
-        boolean flywheelOn = true;
         if(gamepad1.dpad_up){
             flywheelOn = true;
         }else if(gamepad1.dpad_down){
