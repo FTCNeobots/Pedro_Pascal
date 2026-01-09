@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Math.abs;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -24,6 +26,7 @@ public class DecodeDrive extends OpMode {
     private DcMotor rightBackDrive;
     private DcMotor flywheel;
     private Servo outtakeServo;
+    private Servo heightServo;
     private double maxSpeed = 1;
     private double botHeading;
     private double turnSpeed = 1;
@@ -40,6 +43,10 @@ public class DecodeDrive extends OpMode {
     private DigitalChannel servoClosed;
     public boolean timerOn = false;
     public boolean flywheelOn = true;
+    private Limelight3A limelight3A;
+    private double xCorrection = 0;
+    private double yCorrection = 0;
+    private boolean aimAssistInPosition = false;
     double time;
     IMU imu;
 
@@ -55,7 +62,8 @@ public class DecodeDrive extends OpMode {
         rightBackDrive = hardwareMap.dcMotor.get("rightBack");
         rightFrontDrive = hardwareMap.dcMotor.get("rightFront");
 
-        outtakeServo = hardwareMap.get(Servo.class, "servo");
+        outtakeServo = hardwareMap.get(Servo.class, "outtake");
+        heightServo = hardwareMap.get(Servo.class, "servo");
 
         servoClosed = hardwareMap.get(DigitalChannel.class, "switch");
         servoClosed.setMode(DigitalChannel.Mode.INPUT);
@@ -74,6 +82,9 @@ public class DecodeDrive extends OpMode {
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         imu.initialize(parameters);
+
+        //limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
+        //limelight3A.pipelineSwitch(3); //April Tags blue
     }
 
     @Override
@@ -100,19 +111,20 @@ public class DecodeDrive extends OpMode {
                 }
                 timerOn = false;
             }
-
             SpindexPositioning();
             SpindexCycling();
         }
 
+        if(gamepad1.a){
+            //AimAssist();
+        }else{
+            NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        }
+
+        HeightControl();
         ControlIntake();
         FlywheelControl();
         botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-
-
-
-
 
         telemetry.addData("Target pos ", targetPosition);
         telemetry.addData("Pos ", position);
@@ -132,7 +144,6 @@ public class DecodeDrive extends OpMode {
         ///die negatief hoort niet te hoeven, maar helpt wel
         double _Turn = -_Turnget * turnSpeed;
         _X = _X * 1.1;
-
 
         double _LFSpeed = MathLogic.Clamp(_Y - _X + _Turn, -1, 1) * maxSpeed;
         double _LBSpeed = MathLogic.Clamp(_Y + _X + _Turn, -1, 1) * maxSpeed;
@@ -242,13 +253,11 @@ public class DecodeDrive extends OpMode {
 
 
 
-
-
         }
 
         //ejects a ball and saves that the current slot is empty
         /// to do: add the correct servo positions
-        if(gamepad1.b){
+        if(gamepad1.b || aimAssistInPosition){
             //checks if the current position is holding a ball
             if(!ballAtCurrentValue) {
                 if (position == 1) {
@@ -322,4 +331,73 @@ public class DecodeDrive extends OpMode {
             flywheel.setPower(0);
         }
     }
+    public void HeightControl(){
+        if(gamepad1.x){
+            heightServo.setPosition(0.2);
+        }
+        if(gamepad1.y){
+            heightServo.setPosition(0.4);
+        }
+
+    }
+
+
+    public void AimAssist(){
+        double pX = 0.3;
+        double targetX;
+        double targetY;
+        double feedforward = 0.05;
+        double deadZone = 1;
+        double positionFar = 0.5;
+        double positionClose = 0.7;
+
+
+        LLResult llResult = limelight3A.getLatestResult();
+        if(llResult != null && llResult.isValid()){
+            if(llResult.getTa() < 0.5){
+                targetX = 0;
+                targetY = 0;
+
+            }else{
+                targetX = 0;
+                targetY = 0;
+            }
+
+            if(llResult.getTx() - targetX > deadZone){
+
+                xCorrection = feedforward + llResult.getTx() * pX;
+                aimAssistInPosition = false;
+
+            }else if(llResult.getTx() - targetX < -deadZone){
+
+                xCorrection = -feedforward + llResult.getTx() * pX;
+                aimAssistInPosition = false;
+
+            }else{
+                xCorrection = 0;
+                yCorrection = 0;
+
+                telemetry.addData("In ", "position!");
+                aimAssistInPosition = true;
+            }
+        }else{
+            xCorrection = 0;
+            yCorrection = 0;
+
+            aimAssistInPosition = false;
+        }
+
+
+        double _LFSpeed = MathLogic.Clamp(yCorrection + xCorrection, -1, 1) * maxSpeed;
+        double _LBSpeed = MathLogic.Clamp(yCorrection + xCorrection, -1, 1) * maxSpeed;
+        double _RBSpeed = MathLogic.Clamp(yCorrection -xCorrection, -1, 1) * maxSpeed;
+        double _RFSpeed = MathLogic.Clamp(yCorrection -xCorrection, -1, 1) * maxSpeed;
+
+        leftFrontDrive.setPower(_LFSpeed);
+        leftBackDrive.setPower(_LBSpeed);
+        rightBackDrive.setPower(_RBSpeed);
+        rightFrontDrive.setPower(_RFSpeed);
+
+    }
+
 }
