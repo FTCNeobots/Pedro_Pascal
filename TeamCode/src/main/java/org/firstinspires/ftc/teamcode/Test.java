@@ -11,13 +11,13 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 public class Test extends OpMode {
 
     public Servo servo;
-    public ColorSensor sensor;
+    //public ColorSensor sensor;
     public DcMotor flywheel;
 
     @Override
     public void init() {
-        servo = hardwareMap.servo.get("servo");
-        sensor = hardwareMap.get(ColorSensor.class, "sensor");
+        servo = hardwareMap.servo.get("height");
+        //sensor = hardwareMap.get(ColorSensor.class, "sensor");
 
         flywheel = hardwareMap.dcMotor.get("flywheel");
 
@@ -28,13 +28,13 @@ public class Test extends OpMode {
     @Override
     public void loop() {
 
-        sensor.enableLed(true); //is toch mooi?
+        //sensor.enableLed(true); //is toch mooi?
 
         //telemetry.addData("Color number: ", sensor.readUnsignedByte(ModernRoboticsI2cColorSensor.Register.COLOR_NUMBER));
         //telemetry.addData("Color index: ", sensor.readUnsignedByte(ModernRoboticsI2cColorSensor.Register.COLOR_INDEX));
-        telemetry.addData("Red: ", sensor.red());
-        telemetry.addData("blue: ", sensor.blue());
-        telemetry.addData("green: ", sensor.green());
+        //telemetry.addData("Red: ", sensor.red());
+        //telemetry.addData("blue: ", sensor.blue());
+        //telemetry.addData("green: ", sensor.green());
 
 
 

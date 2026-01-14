@@ -63,7 +63,7 @@ public class DecodeDrive extends OpMode {
         rightFrontDrive = hardwareMap.dcMotor.get("rightFront");
 
         outtakeServo = hardwareMap.get(Servo.class, "outtake");
-        heightServo = hardwareMap.get(Servo.class, "servo");
+        heightServo = hardwareMap.get(Servo.class, "height");
 
         servoClosed = hardwareMap.get(DigitalChannel.class, "switch");
         servoClosed.setMode(DigitalChannel.Mode.INPUT);
@@ -85,6 +85,12 @@ public class DecodeDrive extends OpMode {
 
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         limelight3A.pipelineSwitch(3); //April Tags blue
+    }
+
+
+    @Override
+    public void start() {
+        limelight3A.start();
     }
 
     @Override
