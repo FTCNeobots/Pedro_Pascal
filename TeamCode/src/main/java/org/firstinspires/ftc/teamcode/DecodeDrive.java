@@ -83,8 +83,8 @@ public class DecodeDrive extends OpMode {
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         imu.initialize(parameters);
 
-        //limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
-        //limelight3A.pipelineSwitch(3); //April Tags blue
+        limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight3A.pipelineSwitch(3); //April Tags blue
     }
 
     @Override
@@ -116,7 +116,7 @@ public class DecodeDrive extends OpMode {
         }
 
         if(gamepad1.a){
-            //AimAssist();
+            AimAssist();
         }else{
             NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         }
