@@ -16,7 +16,7 @@ public class Test extends OpMode {
 
     @Override
     public void init() {
-        servo = hardwareMap.servo.get("outtake");
+        servo = hardwareMap.servo.get("height");
         //sensor = hardwareMap.get(ColorSensor.class, "sensor");
 
         flywheel = hardwareMap.dcMotor.get("flywheel");

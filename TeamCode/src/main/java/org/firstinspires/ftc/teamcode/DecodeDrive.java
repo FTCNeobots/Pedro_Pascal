@@ -38,8 +38,8 @@ public class DecodeDrive extends OpMode {
     private boolean ballAt2 = false;
     private boolean ballAt3 = false;
     public boolean ballAtCurrentValue = false;
-    public double servoOut = 0.2;
-    public double servoIn = 0.5;
+    public double servoOut = 0;
+    public double servoIn = 0.2;
     private DigitalChannel servoClosed;
     public boolean timerOn = false;
     public boolean flywheelOn = true;
@@ -117,8 +117,8 @@ public class DecodeDrive extends OpMode {
                 }
                 timerOn = false;
             }
-            SpindexPositioning();
             SpindexCycling();
+            SpindexPositioning();
         }
 
         if(gamepad1.a){
