@@ -38,7 +38,7 @@ public class DecodeDrive extends OpMode {
     private boolean ballAt2 = false;
     private boolean ballAt3 = false;
     public boolean ballAtCurrentValue = false;
-    public double servoOut = 0;
+    public double servoOut = -0.01;
     public double servoIn = 0.2;
     private DigitalChannel servoClosed;
     public boolean timerOn = false;
@@ -121,10 +121,12 @@ public class DecodeDrive extends OpMode {
             SpindexPositioning();
         }
 
+
         if(gamepad1.a){
             AimAssist();
         }else{
             NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+            aimAssistInPosition = false;
         }
 
         HeightControl();
@@ -132,10 +134,11 @@ public class DecodeDrive extends OpMode {
         FlywheelControl();
         botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-        telemetry.addData("Target pos ", targetPosition);
-        telemetry.addData("Pos ", position);
-        telemetry.addData("Spindex pos: ", spindex.getCurrentPosition());
+        telemetry.addData("AimAssist in position: ", aimAssistInPosition);
         telemetry.addData("Limit switch state: ", servoClosed.getState());
+        telemetry.addData("servo position: ", outtakeServo.getPosition());
+
+        telemetry.addData("Bot heading: ", botHeading);
 
         telemetry.addData("Ball at 1: ", ballAt1);
         telemetry.addData("Ball at 2: ", ballAt2);
@@ -145,11 +148,21 @@ public class DecodeDrive extends OpMode {
     }
     private void NormalDrive(double _Xget, double _Yget, double _Turnget) {
 
+        if(gamepad1.left_trigger > 0){
+            maxSpeed = -1;
+            turnSpeed = 1;
+        }else{
+            maxSpeed = -0.5;
+            turnSpeed = 2;
+        }
+
         double _X = _Xget * Math.cos(botHeading) - _Yget * Math.sin(botHeading);
         double _Y = _Xget * Math.sin(botHeading) + _Yget * Math.cos(botHeading);
         ///die negatief hoort niet te hoeven, maar helpt wel
-        double _Turn = -_Turnget * turnSpeed;
+        double _Turn = _Turnget * turnSpeed;
         _X = _X * 1.1;
+
+
 
         double _LFSpeed = MathLogic.Clamp(_Y - _X + _Turn, -1, 1) * maxSpeed;
         double _LBSpeed = MathLogic.Clamp(_Y + _X + _Turn, -1, 1) * maxSpeed;
@@ -163,35 +176,34 @@ public class DecodeDrive extends OpMode {
 
     }
     private void ControlIntake(){
-        if(gamepad1.left_trigger > 0){
-            intake.setPower(-1);
-        }else if(gamepad1.right_trigger > 0){
+        if(gamepad1.right_trigger > 0){
             intake.setPower(1);
         }else{
             intake.setPower(0);
         }
 
     }
+
     private void SpindexPositioning(){
         if(!spindexRunning && servoClosed.getState()){
             int targetDifference = targetPosition - position;
             if(targetDifference == 1 || targetDifference == -2){
-                spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                spindex.setTargetPosition(ticksBetween);
-                spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                position = targetPosition;
-                spindexRunning = true;
-            }
-            if(targetDifference == 2 || targetDifference == -1){
                 spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 spindex.setTargetPosition(-ticksBetween);
                 spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 position = targetPosition;
                 spindexRunning = true;
             }
+            if(targetDifference == 2 || targetDifference == -1){
+                spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                spindex.setTargetPosition(ticksBetween);
+                spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                position = targetPosition;
+                spindexRunning = true;
+            }
         }
         if(spindexRunning){
-            spindex.setPower(1);
+            spindex.setPower(0.5);
             if(abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) < 5){
                 spindexRunning = false;
 
@@ -217,12 +229,12 @@ public class DecodeDrive extends OpMode {
                 ballAt3 = true;
             }
             //move to empty ball location
-            if(!ballAt1){
-                targetPosition = 1;
+            if(!ballAt3){
+                targetPosition = 3;
             }else if(!ballAt2){
                 targetPosition = 2;
-            }else if (!ballAt3){
-                targetPosition = 3;
+            }else if (!ballAt1){
+                targetPosition = 1;
             }else{
                 telemetry.addData("Spindexer is ", "full");
             }
@@ -338,45 +350,46 @@ public class DecodeDrive extends OpMode {
         }
     }
     public void HeightControl(){
-        if(gamepad1.x){
+        if(gamepad1.dpad_left){
             heightServo.setPosition(0.2);
         }
-        if(gamepad1.y){
-            heightServo.setPosition(0.4);
+        if(gamepad1.dpad_right){
+            heightServo.setPosition(0.6);
         }
 
     }
 
 
     public void AimAssist(){
-        double pX = 0.3;
+        double pX = 0.015;
         double targetX;
-        double targetY;
+        double targetA;
         double feedforward = 0.05;
-        double deadZone = 1;
+        double deadZone = 2;
         double positionFar = 0.5;
         double positionClose = 0.7;
+        maxSpeed = 1;
 
 
         LLResult llResult = limelight3A.getLatestResult();
         if(llResult != null && llResult.isValid()){
             if(llResult.getTa() < 0.5){
                 targetX = 0;
-                targetY = 0;
+                targetA = 0.34;
 
             }else{
                 targetX = 0;
-                targetY = 0;
+                targetA = 0;
             }
 
-            if(llResult.getTx() - targetX > deadZone){
+            if((llResult.getTx() - targetX) > deadZone){
 
-                xCorrection = feedforward + llResult.getTx() * pX;
+                xCorrection = feedforward + (llResult.getTx() - targetX) * pX;
                 aimAssistInPosition = false;
 
-            }else if(llResult.getTx() - targetX < -deadZone){
+            }else if((llResult.getTx() - targetX) < -deadZone){
 
-                xCorrection = -feedforward + llResult.getTx() * pX;
+                xCorrection = -feedforward + (llResult.getTx() - targetX) * pX;
                 aimAssistInPosition = false;
 
             }else{
@@ -394,10 +407,10 @@ public class DecodeDrive extends OpMode {
         }
 
 
-        double _LFSpeed = MathLogic.Clamp(yCorrection + xCorrection, -1, 1) * maxSpeed;
-        double _LBSpeed = MathLogic.Clamp(yCorrection + xCorrection, -1, 1) * maxSpeed;
-        double _RBSpeed = MathLogic.Clamp(yCorrection -xCorrection, -1, 1) * maxSpeed;
-        double _RFSpeed = MathLogic.Clamp(yCorrection -xCorrection, -1, 1) * maxSpeed;
+        double _LFSpeed = MathLogic.Clamp(yCorrection - xCorrection, -1, 1) * maxSpeed;
+        double _LBSpeed = MathLogic.Clamp(yCorrection - xCorrection, -1, 1) * maxSpeed;
+        double _RBSpeed = MathLogic.Clamp(yCorrection + xCorrection, -1, 1) * maxSpeed;
+        double _RFSpeed = MathLogic.Clamp(yCorrection + xCorrection, -1, 1) * maxSpeed;
 
         leftFrontDrive.setPower(_LFSpeed);
         leftBackDrive.setPower(_LBSpeed);
