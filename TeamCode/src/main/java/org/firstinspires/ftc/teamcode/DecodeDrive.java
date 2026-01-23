@@ -149,17 +149,17 @@ public class DecodeDrive extends OpMode {
     private void NormalDrive(double _Xget, double _Yget, double _Turnget) {
 
         if(gamepad1.left_trigger > 0){
-            maxSpeed = 1;
+            maxSpeed = -1;
             turnSpeed = 1;
         }else{
-            maxSpeed = 0.5;
+            maxSpeed = -0.5;
             turnSpeed = 2;
         }
 
         double _X = _Xget * Math.cos(botHeading) - _Yget * Math.sin(botHeading);
         double _Y = _Xget * Math.sin(botHeading) + _Yget * Math.cos(botHeading);
         ///die negatief hoort niet te hoeven, maar helpt wel
-        double _Turn = _Turnget * turnSpeed;
+        double _Turn = -_Turnget * turnSpeed;
         _X = _X * 1.1;
 
 
