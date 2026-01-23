@@ -38,8 +38,8 @@ public class DecodeDrive extends OpMode {
     private boolean ballAt2 = false;
     private boolean ballAt3 = false;
     public boolean ballAtCurrentValue = false;
-    public double servoOut = -0.01;
-    public double servoIn = 0.2;
+    public double servoOut = 0;
+    public double servoIn = 0.3;
     private DigitalChannel servoClosed;
     public boolean timerOn = false;
     public boolean flywheelOn = true;
@@ -91,6 +91,8 @@ public class DecodeDrive extends OpMode {
     @Override
     public void start() {
         limelight3A.start();
+        outtakeServo.setPosition(servoIn);
+        heightServo.setPosition(0.2);
     }
 
     @Override
@@ -117,8 +119,13 @@ public class DecodeDrive extends OpMode {
                 }
                 timerOn = false;
             }
-            SpindexCycling();
-            SpindexPositioning();
+            if(!gamepad1.y){
+                SpindexCycling();
+                SpindexPositioning();
+            }else{
+                spindex.setPower(0);
+            }
+
         }
 
 
@@ -350,10 +357,9 @@ public class DecodeDrive extends OpMode {
         }
     }
     public void HeightControl(){
-        if(gamepad1.dpad_left){
+        if(!gamepad1.dpad_left){
             heightServo.setPosition(0.2);
-        }
-        if(gamepad1.dpad_right){
+        }else{
             heightServo.setPosition(0.6);
         }
 
