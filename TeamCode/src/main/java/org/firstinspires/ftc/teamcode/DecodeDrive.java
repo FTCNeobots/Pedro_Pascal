@@ -70,11 +70,11 @@ public class DecodeDrive extends OpMode {
 
         flywheel = hardwareMap.dcMotor.get("flywheel");
 
-        rightFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        //rightFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        //rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         //dit hoort niet te hoeven, maar zo werkt het?
-        //leftBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-        //leftFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 
         imu = hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
@@ -149,10 +149,10 @@ public class DecodeDrive extends OpMode {
     private void NormalDrive(double _Xget, double _Yget, double _Turnget) {
 
         if(gamepad1.left_trigger > 0){
-            maxSpeed = -1;
+            maxSpeed = 1;
             turnSpeed = 1;
         }else{
-            maxSpeed = -0.5;
+            maxSpeed = 0.5;
             turnSpeed = 2;
         }
 
@@ -368,7 +368,7 @@ public class DecodeDrive extends OpMode {
         double deadZone = 2;
         double positionFar = 0.5;
         double positionClose = 0.7;
-        maxSpeed = 1;
+        maxSpeed = -1;
 
 
         LLResult llResult = limelight3A.getLatestResult();
