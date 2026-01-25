@@ -30,13 +30,14 @@ public class AutoPedo extends OpMode {
     public double servoOut = 0;
     public double servoIn = 0.3;
     private int ticksBetween = 445;
+    private double sleepTime = 300;
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
     private final Pose startPose = new Pose(48, 9, Math.toRadians(90));
-    private final Pose scorePose = new Pose(72, 24, Math.toRadians(28));
-    private final Pose pickup1Pose = new Pose(37, 121, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose scorePose = new Pose(72, 24, Math.toRadians(29));
+    private final Pose pickup1Pose = new Pose(30, 36, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup2Pose = new Pose(43, 130, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
     private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
@@ -68,7 +69,7 @@ public class AutoPedo extends OpMode {
     public void start() {
         opmodeTimer.resetTimer();
         setPathState(0);
-        flywheel.setPower(1);
+        flywheel.setPower(-1);
         heightServo.setPosition(0.2);
         outtakeServo.setPosition(servoIn);
     }
@@ -76,11 +77,7 @@ public class AutoPedo extends OpMode {
     @Override
     public void loop() {
         follower.update();
-        try {
-            autonomousPathUpdate();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        autonomousPathUpdate();
 
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
@@ -92,11 +89,17 @@ public class AutoPedo extends OpMode {
 
 
     private Path scorePreload;
+    private PathChain grabPickup1;
     public void buildPaths(){
         scorePreload = new Path(new BezierLine(startPose, scorePose));
         scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+
+        grabPickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, pickup1Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
+                .build();
     }
-    public void autonomousPathUpdate() throws InterruptedException {
+    public void autonomousPathUpdate(){
         switch (pathState) {
             case 0:
                 follower.followPath(scorePreload);
@@ -104,41 +107,64 @@ public class AutoPedo extends OpMode {
                 break;
             case 1:
                 if(!follower.isBusy()) {
-                    outtakeServo.setPosition(servoOut);
-                    wait(500);
-                    outtakeServo.setPosition(servoIn);
-                    wait(500);
-                    spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    spindex.setTargetPosition(-ticksBetween);
-                    spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    spindex.setPower(0.5);
+                    EmptySpindex();
+                    intake.setPower(1);
 
-                    while(abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) > 5){}
+                    follower.followPath(grabPickup1,true);
+                    setPathState(2);
+                }
+                break;
+            case 2:
 
-                    outtakeServo.setPosition(servoOut);
-                    wait(500);
-                    outtakeServo.setPosition(servoIn);
-                    wait(500);
-
-                    spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    spindex.setTargetPosition(-ticksBetween);
-                    spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    spindex.setPower(0.5);
-
-                    while(abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) > 5){}
-
-                    outtakeServo.setPosition(servoOut);
-                    wait(500);
-                    outtakeServo.setPosition(servoIn);
-
+                if(!follower.isBusy()){
                     setPathState(-1);
                 }
+
                 break;
         }
     }
+
+
+
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.resetTimer();
+    }
+
+    public void Sleeping(double ms){
+        double time = getRuntime();
+        while((getRuntime()-time) < (ms/1000)){
+
+        }
+    }
+
+    public void EmptySpindex(){
+        outtakeServo.setPosition(servoOut);
+        Sleeping(sleepTime);
+        outtakeServo.setPosition(servoIn);
+        Sleeping(sleepTime);
+        spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        spindex.setTargetPosition(-ticksBetween);
+        spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        spindex.setPower(0.5);
+
+        while(abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) > 5){}
+
+        outtakeServo.setPosition(servoOut);
+        Sleeping(sleepTime);
+        outtakeServo.setPosition(servoIn);
+        Sleeping(sleepTime);
+
+        spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        spindex.setTargetPosition(-ticksBetween);
+        spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        spindex.setPower(0.5);
+
+        while(abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) > 5){}
+
+        outtakeServo.setPosition(servoOut);
+        Sleeping(sleepTime);
+        outtakeServo.setPosition(servoIn);
     }
 
 
