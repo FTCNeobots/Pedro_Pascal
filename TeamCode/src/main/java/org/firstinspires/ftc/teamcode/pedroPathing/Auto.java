@@ -8,17 +8,24 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous(name = "Auto", group = "Examples")
 public class Auto extends OpMode {
+
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
+
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(30, -30, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
 
     @Override
     public void init() {
+
+
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
