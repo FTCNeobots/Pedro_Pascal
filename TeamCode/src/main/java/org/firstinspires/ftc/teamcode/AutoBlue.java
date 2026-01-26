@@ -18,8 +18,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 
-@Autonomous(name = "AutoPedo")
-public class AutoPedo extends OpMode {
+@Autonomous(name = "AutoBlue")
+public class AutoBlue extends OpMode {
 
     private DcMotor intake;
     private DcMotor spindex;
@@ -38,14 +38,14 @@ public class AutoPedo extends OpMode {
 
     private final Pose startPose = new Pose(48, 9, Math.toRadians(0));
     private final Pose scorePose = new Pose(55, 15, Math.toRadians(22));
-    private final Pose angle1Pose = new Pose(50, 34, Math.toRadians(180));
-    private final Pose pickup1Pose = new Pose(37, 34, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2Pose = new Pose(32, 34, Math.toRadians(180));
-    private final Pose pickup3Pose = new Pose(9, 34, Math.toRadians(180));
-    private final Pose _angle1Pose = new Pose(50, 58, Math.toRadians(180));
-    private final Pose _pickup1Pose = new Pose(37, 58, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose _pickup2Pose = new Pose(32, 58, Math.toRadians(180));
-    private final Pose _pickup3Pose = new Pose(9, 58, Math.toRadians(180));
+    private final Pose angle1Pose = new Pose(50, 33, Math.toRadians(180));
+    private final Pose pickup1Pose = new Pose(37, 33, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2Pose = new Pose(32, 33, Math.toRadians(180));
+    private final Pose pickup3Pose = new Pose(9, 33, Math.toRadians(180));
+    private final Pose _angle1Pose = new Pose(50, 57, Math.toRadians(180));
+    private final Pose _pickup1Pose = new Pose(37, 57, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose _pickup2Pose = new Pose(32, 57, Math.toRadians(180));
+    private final Pose _pickup3Pose = new Pose(9, 57, Math.toRadians(180));
     private final Pose finalPose = new Pose(40, 26, Math.toRadians(90));
 
     @Override
