@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Math.abs;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -15,8 +16,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@TeleOp(name = "DecodeDrive")
-public class DecodeDrive extends OpMode {
+@TeleOp(name = "DecodeBlue")
+public class DecodeBlue extends OpMode {
 
     private DcMotor intake;
     private DcMotor spindex;
@@ -48,7 +49,9 @@ public class DecodeDrive extends OpMode {
     private double yCorrection = 0;
     private boolean aimAssistInPosition = false;
     double time;
+    double flywheelSpeed = -1;
     IMU imu;
+    GoBildaPinpointDriver pinpoint;
 
     @Override
     public void init() {
@@ -85,6 +88,8 @@ public class DecodeDrive extends OpMode {
 
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         limelight3A.pipelineSwitch(3); //April Tags blue
+
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
     }
 
 
@@ -93,13 +98,17 @@ public class DecodeDrive extends OpMode {
         limelight3A.start();
         outtakeServo.setPosition(servoIn);
         heightServo.setPosition(0.2);
+
+        pinpoint.resetPosAndIMU();
     }
 
     @Override
     public void loop() {
+        pinpoint.update();
+
 
         if (gamepad1.back) {
-            imu.resetYaw();
+            pinpoint.resetPosAndIMU();
             telemetry.addData("Yaw ", "reset!");
 
         }
@@ -136,16 +145,16 @@ public class DecodeDrive extends OpMode {
             aimAssistInPosition = false;
         }
 
-        HeightControl();
+        //HeightControl();
         ControlIntake();
         FlywheelControl();
-        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        botHeading = pinpoint.getHeading(AngleUnit.RADIANS);
 
         telemetry.addData("AimAssist in position: ", aimAssistInPosition);
         telemetry.addData("Limit switch state: ", servoClosed.getState());
         telemetry.addData("servo position: ", outtakeServo.getPosition());
 
-        telemetry.addData("Bot heading: ", botHeading);
+        telemetry.addData("Bot heading: ", pinpoint.getHeading(AngleUnit.DEGREES));
 
         telemetry.addData("Ball at 1: ", ballAt1);
         telemetry.addData("Ball at 2: ", ballAt2);
@@ -351,7 +360,7 @@ public class DecodeDrive extends OpMode {
             flywheelOn = false;
         }
         if(flywheelOn){
-            flywheel.setPower(-1);
+            flywheel.setPower(flywheelSpeed);
         }else{
             flywheel.setPower(0);
         }
@@ -368,6 +377,7 @@ public class DecodeDrive extends OpMode {
 
     public void AimAssist(){
         double pX = 0.015;
+        double targetYaw = -40 * 3.141592654 / 180;
         double targetX;
         double targetA;
         double feedforward = 0.05;
@@ -382,10 +392,14 @@ public class DecodeDrive extends OpMode {
             if(llResult.getTa() < 0.5){
                 targetX = 0;
                 targetA = 0.34;
+                heightServo.setPosition(0.2);
+                flywheelSpeed = -1;
 
             }else{
                 targetX = 0;
                 targetA = 0;
+                heightServo.setPosition(0.2);
+                flywheelSpeed = -0.9;
             }
 
             if((llResult.getTx() - targetX) > deadZone){
@@ -406,7 +420,14 @@ public class DecodeDrive extends OpMode {
                 aimAssistInPosition = true;
             }
         }else{
-            xCorrection = 0;
+            if((3.141592654 + targetYaw) > botHeading && botHeading > targetYaw){
+                xCorrection = 0.5;
+                telemetry.addData("Moving", "Right");
+            }else{
+                xCorrection = -0.5;
+                telemetry.addData("Moving", "Left");
+            }
+
             yCorrection = 0;
 
             aimAssistInPosition = false;
