@@ -145,7 +145,7 @@ public class DecodeBlue extends OpMode {
             aimAssistInPosition = false;
         }
 
-        //HeightControl();
+        HeightControl();
         ControlIntake();
         FlywheelControl();
         botHeading = pinpoint.getHeading(AngleUnit.RADIANS);

@@ -145,7 +145,7 @@ public class DecodeRed extends OpMode {
             aimAssistInPosition = false;
         }
 
-        //HeightControl();
+        HeightControl();
         ControlIntake();
         FlywheelControl();
         botHeading = pinpoint.getHeading(AngleUnit.RADIANS);
@@ -155,6 +155,7 @@ public class DecodeRed extends OpMode {
         telemetry.addData("servo position: ", outtakeServo.getPosition());
 
         telemetry.addData("Bot heading: ", pinpoint.getHeading(AngleUnit.DEGREES));
+
 
         telemetry.addData("Ball at 1: ", ballAt1);
         telemetry.addData("Ball at 2: ", ballAt2);
@@ -432,6 +433,7 @@ public class DecodeRed extends OpMode {
 
             aimAssistInPosition = false;
         }
+        telemetry.addData("Limelight tX: ", llResult.getTx());
 
 
         double _LFSpeed = MathLogic.Clamp(yCorrection - xCorrection, -1, 1) * maxSpeed;
