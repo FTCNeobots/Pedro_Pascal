@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "DecodeRed")
 public class DecodeRed extends OpMode {
@@ -90,6 +91,10 @@ public class DecodeRed extends OpMode {
         limelight3A.pipelineSwitch(4); //April Tags red
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.setOffsets(-3.42, -6.77, DistanceUnit.INCH);
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+
     }
 
 
@@ -168,10 +173,16 @@ public class DecodeRed extends OpMode {
         if(gamepad1.left_trigger > 0){
             maxSpeed = -1;
             turnSpeed = 1;
+        }else if(gamepad1.x){
+            maxSpeed = -0.25;
+            turnSpeed = 4;
+
         }else{
             maxSpeed = -0.5;
             turnSpeed = 2;
         }
+
+
 
         double _X = _Xget * Math.cos(botHeading) - _Yget * Math.sin(botHeading);
         double _Y = _Xget * Math.sin(botHeading) + _Yget * Math.cos(botHeading);
@@ -259,7 +270,7 @@ public class DecodeRed extends OpMode {
         }
 
         //moves the spindexer to a new intake position without saving that a ball is in the current position
-        if(gamepad1.left_bumper && !spindexRunning){
+        /*if(gamepad1.left_bumper && !spindexRunning){
             //move to empty ball location
             if(position == 1) {
                 if (!ballAt2) {
@@ -288,7 +299,7 @@ public class DecodeRed extends OpMode {
 
 
 
-        }
+        }*/
 
         //ejects a ball and saves that the current slot is empty
         /// to do: add the correct servo positions
@@ -365,14 +376,16 @@ public class DecodeRed extends OpMode {
         }else{
             flywheel.setPower(0);
         }
-    }
-    public void HeightControl(){
-        if(!gamepad1.dpad_left){
-            heightServo.setPosition(0.2);
-        }else{
-            heightServo.setPosition(0.6);
+
+        if(gamepad1.dpad_left){
+            flywheelSpeed = -1;
+        }else if(gamepad1.dpad_right){
+            flywheelSpeed = -0.9;
         }
 
+    }
+    public void HeightControl(){
+        heightServo.setPosition(0.2);
     }
 
 
@@ -447,5 +460,6 @@ public class DecodeRed extends OpMode {
         rightFrontDrive.setPower(_RFSpeed);
 
     }
+
 
 }
