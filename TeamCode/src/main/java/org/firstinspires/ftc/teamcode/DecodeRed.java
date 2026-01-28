@@ -33,7 +33,7 @@ public class DecodeRed extends OpMode {
     private double botHeading;
     private double turnSpeed = 1;
     private int position = 1;
-    private int ticksBetween = 445;
+    private int ticksBetween = 443;
     boolean spindexRunning = false;
     private int targetPosition = 1;
     private boolean ballAt1 = false;
@@ -173,7 +173,7 @@ public class DecodeRed extends OpMode {
         if(gamepad1.left_trigger > 0){
             maxSpeed = -1;
             turnSpeed = 1;
-        }else if(gamepad1.x){
+        }else if(gamepad1.left_bumper){
             maxSpeed = -0.25;
             turnSpeed = 4;
 
