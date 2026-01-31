@@ -134,8 +134,21 @@ public class DecodeRed extends OpMode {
                 timerOn = false;
             }
             if(!gamepad1.y){
-                SpindexCycling();
-                SpindexPositioning();
+
+                if(gamepad2.a){
+                    spindex.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    spindex.setPower(0.1);
+                }else if(gamepad2.b){
+                    spindex.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    spindex.setPower(-0.1);
+                }else{
+                   SpindexCycling();
+                   SpindexPositioning();
+                }
+
+
+
+
             }else{
                 spindex.setPower(0);
             }
@@ -149,6 +162,8 @@ public class DecodeRed extends OpMode {
             NormalDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
             aimAssistInPosition = false;
         }
+
+
 
         HeightControl();
         ControlIntake();
@@ -391,13 +406,14 @@ public class DecodeRed extends OpMode {
 
     public void AimAssist(){
         double pX = 0.015;
-        double targetYaw = -130 * 3.141592654 / 180;
+        double targetYaw = 1 * 3.141592654 / 180;
         double targetX;
         double targetA;
         double feedforward = 0.05;
         double deadZone = 2;
         double positionFar = 0.5;
         double positionClose = 0.7;
+        double offsetX = -5 ;
         maxSpeed = -1;
 
 
@@ -416,12 +432,12 @@ public class DecodeRed extends OpMode {
                 flywheelSpeed = -0.9;
             }
 
-            if((llResult.getTx() - targetX) > deadZone){
+            if((llResult.getTx() - targetX) > (deadZone + offsetX)){
 
                 xCorrection = feedforward + (llResult.getTx() - targetX) * pX;
                 aimAssistInPosition = false;
 
-            }else if((llResult.getTx() - targetX) < -deadZone){
+            }else if((llResult.getTx() - targetX) < (-deadZone + offsetX)){
 
                 xCorrection = -feedforward + (llResult.getTx() - targetX) * pX;
                 aimAssistInPosition = false;
@@ -460,6 +476,8 @@ public class DecodeRed extends OpMode {
         rightFrontDrive.setPower(_RFSpeed);
 
     }
+
+
 
 
 }

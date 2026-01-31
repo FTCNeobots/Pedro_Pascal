@@ -83,6 +83,7 @@ public class AutoBlue extends OpMode {
 
     @Override
     public void loop() {
+
         follower.update();
         autonomousPathUpdate();
 
@@ -274,7 +275,6 @@ public class AutoBlue extends OpMode {
     public void Sleeping(double ms){
         double time = getRuntime();
         while((getRuntime()-time) < (ms/1000)){
-
         }
     }
     public void RunSpindex(){

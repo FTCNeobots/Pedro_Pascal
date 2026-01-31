@@ -133,8 +133,16 @@ public class DecodeBlue extends OpMode {
                 timerOn = false;
             }
             if(!gamepad1.y){
-                SpindexCycling();
-                SpindexPositioning();
+                if(gamepad2.a){
+                    spindex.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    spindex.setPower(0.1);
+                }else if(gamepad2.b){
+                    spindex.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    spindex.setPower(-0.1);
+                }else{
+                    SpindexCycling();
+                    SpindexPositioning();
+                }
             }else{
                 spindex.setPower(0);
             }
@@ -387,7 +395,7 @@ public class DecodeBlue extends OpMode {
 
     public void AimAssist(){
         double pX = 0.015;
-        double targetYaw = -40 * 3.141592654 / 180;
+        double targetYaw = 50 * 3.141592654 / 180;
         double targetX;
         double targetA;
         double feedforward = 0.05;
@@ -456,5 +464,6 @@ public class DecodeBlue extends OpMode {
         rightFrontDrive.setPower(_RFSpeed);
 
     }
+
 
 }
