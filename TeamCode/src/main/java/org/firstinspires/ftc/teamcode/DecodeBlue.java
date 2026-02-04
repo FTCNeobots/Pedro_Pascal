@@ -8,6 +8,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -29,6 +30,7 @@ public class DecodeBlue extends OpMode {
     private DcMotor flywheel;
     private Servo outtakeServo;
     private Servo heightServo;
+    private ColorSensor colorSensor;
     private double maxSpeed = 1;
     private double botHeading;
     private double turnSpeed = 1;
@@ -39,6 +41,10 @@ public class DecodeBlue extends OpMode {
     private boolean ballAt1 = false;
     private boolean ballAt2 = false;
     private boolean ballAt3 = false;
+    private boolean is1Green = false;
+    private boolean is2Green = false;
+    private boolean is3Green = false;
+
     public boolean ballAtCurrentValue = false;
     public double servoOut = 0;
     public double servoIn = 0.3;
@@ -75,6 +81,7 @@ public class DecodeBlue extends OpMode {
         servoClosed.setMode(DigitalChannel.Mode.INPUT);
 
         flywheel = hardwareMap.dcMotor.get("flywheel");
+        colorSensor = hardwareMap.get(ColorSensor.class, "sensor");
 
         //rightFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         //rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -104,6 +111,8 @@ public class DecodeBlue extends OpMode {
         limelight3A.start();
         outtakeServo.setPosition(servoIn);
         heightServo.setPosition(0.2);
+
+        colorSensor.enableLed(true);
 
         pinpoint.resetPosAndIMU();
     }
@@ -251,7 +260,7 @@ public class DecodeBlue extends OpMode {
     private void SpindexCycling(){
 
         //moves the spindexer to a new intake position while saving that a ball is in the current position
-        if(gamepad1.right_bumper && !spindexRunning){
+        if((gamepad1.right_bumper || BallAccordingToColorSensor()) && !spindexRunning){
             //change state of current ball location
             if(position == 1){
                 ballAt1 = true;
@@ -490,6 +499,35 @@ public class DecodeBlue extends OpMode {
         leftBackDrive.setPower(_LBSpeed);
         rightBackDrive.setPower(_RBSpeed);
         rightFrontDrive.setPower(_RFSpeed);
+
+    }
+
+    public boolean ColorSenseIsGreen(){
+
+        if((colorSensor.red() >= 3) || (colorSensor.green() >= 3)){
+
+            if(colorSensor.red() > colorSensor.green()){
+                //it is purple
+                return false;
+
+            }else{
+               //it is green
+                return true;
+            }
+
+        }else{
+            return false;
+        }
+
+    }
+
+    public boolean BallAccordingToColorSensor(){
+
+        if(colorSensor.alpha() > 0){
+            return true;
+        }else{
+            return false;
+        }
 
     }
 
