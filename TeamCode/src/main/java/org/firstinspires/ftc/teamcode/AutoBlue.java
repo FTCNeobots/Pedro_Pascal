@@ -37,7 +37,7 @@ public class AutoBlue extends OpMode {
     private int pathState;
 
     private final Pose startPose = new Pose(48, 9, Math.toRadians(0));
-    private final Pose scorePose = new Pose(55, 15, Math.toRadians(22));
+    private final Pose scorePose = new Pose(55, 15, Math.toRadians(20));
     private final Pose angle1Pose = new Pose(50, 33, Math.toRadians(180));
     private final Pose pickup1Pose = new Pose(37, 33, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup2Pose = new Pose(32, 33, Math.toRadians(180));
@@ -46,7 +46,7 @@ public class AutoBlue extends OpMode {
     private final Pose _pickup1Pose = new Pose(37, 57, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose _pickup2Pose = new Pose(32, 57, Math.toRadians(180));
     private final Pose _pickup3Pose = new Pose(9, 57, Math.toRadians(180));
-    private final Pose finalPose = new Pose(40, 26, Math.toRadians(90));
+    private final Pose finalPose = new Pose(40, 26, Math.toRadians(180));
 
     @Override
     public void init() {

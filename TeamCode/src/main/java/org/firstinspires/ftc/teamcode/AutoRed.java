@@ -46,7 +46,7 @@ public class AutoRed extends OpMode {
     private final Pose _pickup1Pose = new Pose(107, 57, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose _pickup2Pose = new Pose(112, 57, Math.toRadians(0));
     private final Pose _pickup3Pose = new Pose(135, 57, Math.toRadians(0));
-    private final Pose finalPose = new Pose(104, 26, Math.toRadians(90));
+    private final Pose finalPose = new Pose(104, 26, Math.toRadians(0));
 
     @Override
     public void init() {

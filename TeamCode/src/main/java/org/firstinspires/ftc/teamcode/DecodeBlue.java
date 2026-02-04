@@ -50,7 +50,9 @@ public class DecodeBlue extends OpMode {
     private double yCorrection = 0;
     private boolean aimAssistInPosition = false;
     double time;
-    double flywheelSpeed = -1;
+    double flywheelSpeed = -0.95;
+    double flywheelSpeedFar = -0.95;
+    double flywheelSpeedClose = -0.85;
     IMU imu;
     GoBildaPinpointDriver pinpoint;
 
@@ -181,7 +183,7 @@ public class DecodeBlue extends OpMode {
             turnSpeed = 1;
         }else if(gamepad1.left_bumper){
             maxSpeed = -0.25;
-            turnSpeed = 4;
+            turnSpeed = 2;
 
         }else{
             maxSpeed = -0.5;
@@ -381,11 +383,37 @@ public class DecodeBlue extends OpMode {
             flywheel.setPower(0);
         }
 
-        if(gamepad1.dpad_left){
-            flywheelSpeed = -1;
-        }else if(gamepad1.dpad_right){
-            flywheelSpeed = -0.9;
+        if(gamepad2.x){
+            flywheelSpeedFar = -0.95;
+            flywheelSpeedClose = -0.85;
+
+            if(flywheel.getPower() == -0.95 || flywheel.getPower() == -1){
+                flywheelSpeed = flywheelSpeedFar;
+            }
+            if(flywheel.getPower() == -0.9 || flywheel.getPower() == -0.85){
+                flywheelSpeed = flywheelSpeedClose;
+            }
+
         }
+        if(gamepad2.y){
+            flywheelSpeedFar = -1;
+            flywheelSpeedClose = -0.9;
+
+            if(flywheel.getPower() == -0.95 || flywheel.getPower() == -1){
+                flywheelSpeed = flywheelSpeedFar;
+            }
+            if(flywheel.getPower() == -0.9 || flywheel.getPower() == -0.85){
+                flywheelSpeed = flywheelSpeedClose;
+            }
+        }
+
+        if(gamepad1.dpad_left){
+            flywheelSpeed = flywheelSpeedFar;
+        }else if(gamepad1.dpad_right){
+            flywheelSpeed = flywheelSpeedClose;
+        }
+
+        telemetry.addData("Flywheelpower", flywheel.getPower());
     }
     public void HeightControl(){
         heightServo.setPosition(0.2);
@@ -395,14 +423,14 @@ public class DecodeBlue extends OpMode {
 
     public void AimAssist(){
         double pX = 0.015;
-        double targetYaw = 50 * 3.141592654 / 180;
+        double targetYaw = -135 * 3.141592654 / 180;
         double targetX;
         double targetA;
         double feedforward = 0.05;
         double deadZone = 2;
         double positionFar = 0.5;
         double positionClose = 0.7;
-        double xOffset = 2;
+        double xOffset = 0;
         maxSpeed = -1;
 
 
@@ -412,13 +440,13 @@ public class DecodeBlue extends OpMode {
                 targetX = 0;
                 targetA = 0.34;
                 heightServo.setPosition(0.2);
-                flywheelSpeed = -1;
+                flywheelSpeed = flywheelSpeedFar;
 
             }else{
                 targetX = 0;
                 targetA = 0;
                 heightServo.setPosition(0.2);
-                flywheelSpeed = -0.9;
+                flywheelSpeed = flywheelSpeedClose;
             }
 
             if((llResult.getTx() - targetX) > (deadZone + xOffset)){
@@ -439,7 +467,7 @@ public class DecodeBlue extends OpMode {
                 aimAssistInPosition = true;
             }
         }else{
-            if((3.141592654 + targetYaw) > botHeading && botHeading > targetYaw){
+            if((targetYaw) < botHeading && (3.141592654 + targetYaw) > botHeading){
                 xCorrection = 0.5;
                 telemetry.addData("Moving", "Right");
             }else{

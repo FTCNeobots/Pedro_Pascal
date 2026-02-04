@@ -6,11 +6,13 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 @Disabled
 @TeleOp(name = "SpindexPositioning")
 public class SpindexPositioning extends OpMode {
     private int position = 1;
-    private int ticksBetween = 445;
+    private int ticksBetween = 420; //Blaze it!
+    private Servo servo;
     boolean spindexRunning = false;
 
     private DcMotor spindex;
@@ -20,6 +22,7 @@ public class SpindexPositioning extends OpMode {
         spindex = hardwareMap.dcMotor.get("spindex");
         spindex.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        servo = hardwareMap.get(Servo.class, "outtake");
     }
 
     @Override
@@ -32,6 +35,15 @@ public class SpindexPositioning extends OpMode {
         }
         if(gamepad1.x){
             targetPosition = 3;
+        }
+        servo.setPosition(0.3);
+
+        if(gamepad1.y){
+            spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            spindex.setTargetPosition(ticksBetween);
+            spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            position = targetPosition;
+            spindexRunning = true;
         }
         SpindexPositioning();
 
@@ -59,7 +71,7 @@ public class SpindexPositioning extends OpMode {
             }
 
         }else{
-            spindex.setPower(1);
+            spindex.setPower(0.5);
             if(abs(spindex.getCurrentPosition() - spindex.getTargetPosition()) < 5){
                 spindexRunning = false;
             }
