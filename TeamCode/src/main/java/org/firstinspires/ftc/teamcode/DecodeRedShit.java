@@ -6,6 +6,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -17,9 +18,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-@TeleOp(name = "DecodeRed")
-public class DecodeRed extends OpMode {
+@Disabled
+@TeleOp(name = "DecodeRedShit")
+public class DecodeRedShit extends OpMode {
 
     private DcMotor intake;
     private DcMotor spindex;
@@ -41,9 +42,6 @@ public class DecodeRed extends OpMode {
     private boolean ballAt1 = false;
     private boolean ballAt2 = false;
     private boolean ballAt3 = false;
-    private boolean is1Green = false;
-    private boolean is2Green = false;
-    private boolean is3Green = false;
     public boolean ballAtCurrentValue = false;
     public double servoOut = 0;
     public double servoIn = 0.3;
@@ -58,7 +56,6 @@ public class DecodeRed extends OpMode {
     double flywheelSpeed = -0.95;
     double flywheelSpeedFar = -0.95;
     double flywheelSpeedClose = -0.85;
-    int patternCode = 1;
     IMU imu;
     GoBildaPinpointDriver pinpoint;
 
@@ -103,6 +100,7 @@ public class DecodeRed extends OpMode {
         pinpoint.setOffsets(-3.42, -6.77, DistanceUnit.INCH);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+
     }
 
 
@@ -125,7 +123,7 @@ public class DecodeRed extends OpMode {
         if (gamepad1.back) {
             pinpoint.resetPosAndIMU();
             telemetry.addData("Yaw ", "reset!");
-            imu.resetYaw();
+
         }
 
         if(!((getRuntime() - time) < 1)){
@@ -134,19 +132,17 @@ public class DecodeRed extends OpMode {
                 ballAtCurrentValue = false;
                 if(position == 1){
                     ballAt2 = false;
-                    is2Green = false;
                 }
                 if(position == 2){
                     ballAt3 = false;
-                    is3Green = false;
                 }
                 if(position == 3){
                     ballAt1 = false;
-                    is1Green = false;
                 }
                 timerOn = false;
             }
             if(!gamepad1.y){
+
                 if(gamepad2.a){
                     spindex.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     spindex.setPower(0.1);
@@ -154,17 +150,20 @@ public class DecodeRed extends OpMode {
                     spindex.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     spindex.setPower(-0.1);
                 }else{
-                    SpindexCycling();
-                    SpindexPositioning();
-                    PatternLogic();
+                   SpindexCycling();
+                   SpindexPositioning();
                 }
+
+
+
+
             }else{
                 spindex.setPower(0);
             }
 
         }
 
-        WhatPattern();
+
         if(gamepad1.a){
             AimAssist();
         }else{
@@ -172,12 +171,12 @@ public class DecodeRed extends OpMode {
             aimAssistInPosition = false;
         }
 
+
+
         HeightControl();
         ControlIntake();
         FlywheelControl();
-
-        //botHeading = pinpoint.getHeading(AngleUnit.RADIANS);
-        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        botHeading = pinpoint.getHeading(AngleUnit.RADIANS);
 
         telemetry.addData("AimAssist in position: ", aimAssistInPosition);
         telemetry.addData("Limit switch state: ", servoClosed.getState());
@@ -185,11 +184,8 @@ public class DecodeRed extends OpMode {
         telemetry.addData("Bot heading: ", pinpoint.getHeading(AngleUnit.DEGREES));
 
         telemetry.addData("Ball at 1: ", ballAt1);
-        telemetry.addData("Is green: ", is1Green);
         telemetry.addData("Ball at 2: ", ballAt2);
-        telemetry.addData("Is green: ", is2Green);
         telemetry.addData("Ball at 3: ", ballAt3);
-        telemetry.addData("Is green: ", is3Green);
 
         telemetry.update();
     }
@@ -206,6 +202,8 @@ public class DecodeRed extends OpMode {
             maxSpeed = -0.5;
             turnSpeed = 2;
         }
+
+
 
         double _X = _Xget * Math.cos(botHeading) - _Yget * Math.sin(botHeading);
         double _Y = _Xget * Math.sin(botHeading) + _Yget * Math.cos(botHeading);
@@ -272,21 +270,12 @@ public class DecodeRed extends OpMode {
             //change state of current ball location
             if(position == 1){
                 ballAt1 = true;
-                if(ColorSenseIsGreen()){
-                    is1Green = true;
-                }
             }
             if(position == 2){
                 ballAt2 = true;
-                if(ColorSenseIsGreen()){
-                    is2Green = true;
-                }
             }
             if(position == 3){
                 ballAt3 = true;
-                if(ColorSenseIsGreen()){
-                    is3Green = true;
-                }
             }
             //move to empty ball location
             if(!ballAt3){
@@ -301,7 +290,40 @@ public class DecodeRed extends OpMode {
 
         }
 
+        //moves the spindexer to a new intake position without saving that a ball is in the current position
+        /*if(gamepad1.left_bumper && !spindexRunning){
+            //move to empty ball location
+            if(position == 1) {
+                if (!ballAt2) {
+                    targetPosition = 2;
+                }
+                if (ballAt3) {
+                    targetPosition = 3;
+                }
+            }
+            if(position == 2) {
+                if (!ballAt1) {
+                    targetPosition = 1;
+                }
+                if (ballAt3) {
+                    targetPosition = 3;
+                }
+            }
+            if(position == 3) {
+                if (!ballAt2) {
+                    targetPosition = 2;
+                }
+                if (ballAt1) {
+                    targetPosition = 1;
+                }
+            }
+
+
+
+        }*/
+
         //ejects a ball and saves that the current slot is empty
+        /// to do: add the correct servo positions
         if(gamepad1.b || aimAssistInPosition){
             //checks if the current position is holding a ball
             if(!ballAtCurrentValue) {
@@ -309,32 +331,16 @@ public class DecodeRed extends OpMode {
                     if (ballAt2) {
                         ballAtCurrentValue = true;
                     }else{
-                        //hard-coded edge cases
-                        if((patternCode == 2) || (patternCode == 3)){
-                            //no ball at the current value, will move to a value with a ball
-                            if(ballAt3){
-                                targetPosition = 2;
-                            }else if(ballAt2){
-                                targetPosition = 1;
-                            }else if (ballAt1){
-                                targetPosition = 3;
-                            }else{
-                                telemetry.addData("No ", "balls!");
-                            }
+                        //no ball at the current value, will move to a value with a ball
+                        if(ballAt1){
+                            targetPosition = 3;
+                        }else if(ballAt2){
+                            targetPosition = 1;
+                        }else if (ballAt3){
+                            targetPosition = 2;
                         }else{
-                            //no ball at the current value, will move to a value with a ball
-                            if(ballAt1){
-                                targetPosition = 3;
-                            }else if(ballAt2){
-                                targetPosition = 1;
-                            }else if (ballAt3){
-                                targetPosition = 2;
-                            }else{
-                                telemetry.addData("No ", "balls!");
-                            }
+                            telemetry.addData("No ", "balls!");
                         }
-
-
                     }
                 }else if (position == 2) {
                     if (ballAt3) {
@@ -422,10 +428,10 @@ public class DecodeRed extends OpMode {
             flywheelSpeed = flywheelSpeedClose;
         }
 
+
     }
     public void HeightControl(){
         heightServo.setPosition(0.2);
-
     }
 
 
@@ -502,23 +508,6 @@ public class DecodeRed extends OpMode {
 
     }
 
-    public boolean ColorSenseIsGreen(){
-
-        if(colorSensor.alpha() > 0){
-            if(colorSensor.red() < colorSensor.green()){
-                //it is green
-                return true;
-            }else{
-               //it is purple
-                return false;
-            }
-        }else{
-            return false;
-        }
-
-    }
-
-
     public boolean BallAccordingToColorSensor(){
 
         if(colorSensor.alpha() >= 3){
@@ -529,54 +518,7 @@ public class DecodeRed extends OpMode {
 
     }
 
-    public void WhatPattern(){
 
-        if(gamepad2.left_bumper){
-            //Green first
-            patternCode = 1;
-        }
-        if(gamepad2.right_bumper){
-            //Green middle
-            patternCode = 2;
-        }
-        if(gamepad2.right_trigger > 0){
-            //Green last
-            patternCode = 3;
-        }
-        telemetry.addData("Pattern value: ", patternCode);
 
-    }
 
-    public void PatternLogic(){
-        if(gamepad1.x){
-            if(patternCode == 1){
-                if(is1Green){
-                    targetPosition = 3;
-                }else if(is2Green){
-                    targetPosition = 1;
-                }else if(is3Green){
-                    targetPosition = 2;
-                }
-            }
-            if(patternCode == 2){
-                if(is1Green){
-                    targetPosition = 2;
-                }else if(is2Green){
-                    targetPosition = 3;
-                }else if(is3Green){
-                    targetPosition = 1;
-                }
-            }
-            if(patternCode == 3){
-                if(is1Green){
-                    targetPosition = 1;
-                }else if(is2Green){
-                    targetPosition = 2;
-                }else if(is3Green){
-                    targetPosition = 3;
-                }
-            }
-        }
-
-    }
 }
