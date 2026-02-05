@@ -8,6 +8,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -29,6 +30,7 @@ public class DecodeRed extends OpMode {
     private DcMotor flywheel;
     private Servo outtakeServo;
     private Servo heightServo;
+    private ColorSensor colorSensor;
     private double maxSpeed = 1;
     private double botHeading;
     private double turnSpeed = 1;
@@ -75,6 +77,7 @@ public class DecodeRed extends OpMode {
         servoClosed.setMode(DigitalChannel.Mode.INPUT);
 
         flywheel = hardwareMap.dcMotor.get("flywheel");
+        colorSensor = hardwareMap.get(ColorSensor.class, "sensor");
 
         //rightFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         //rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -105,6 +108,8 @@ public class DecodeRed extends OpMode {
         limelight3A.start();
         outtakeServo.setPosition(servoIn);
         heightServo.setPosition(0.2);
+
+        colorSensor.enableLed(true);
 
         pinpoint.resetPosAndIMU();
     }
@@ -174,10 +179,8 @@ public class DecodeRed extends OpMode {
 
         telemetry.addData("AimAssist in position: ", aimAssistInPosition);
         telemetry.addData("Limit switch state: ", servoClosed.getState());
-        telemetry.addData("servo position: ", outtakeServo.getPosition());
 
         telemetry.addData("Bot heading: ", pinpoint.getHeading(AngleUnit.DEGREES));
-
 
         telemetry.addData("Ball at 1: ", ballAt1);
         telemetry.addData("Ball at 2: ", ballAt2);
@@ -262,7 +265,7 @@ public class DecodeRed extends OpMode {
     private void SpindexCycling(){
 
         //moves the spindexer to a new intake position while saving that a ball is in the current position
-        if(gamepad1.right_bumper && !spindexRunning){
+        if((gamepad1.right_bumper || BallAccordingToColorSensor()) && !spindexRunning){
             //change state of current ball location
             if(position == 1){
                 ballAt1 = true;
@@ -423,7 +426,7 @@ public class DecodeRed extends OpMode {
         }else if(gamepad1.dpad_right){
             flywheelSpeed = flywheelSpeedClose;
         }
-        telemetry.addData("Flywheelpower", flywheel.getPower());
+
 
     }
     public void HeightControl(){
@@ -473,23 +476,23 @@ public class DecodeRed extends OpMode {
                 xCorrection = 0;
                 yCorrection = 0;
 
-                telemetry.addData("In ", "position!");
+
                 aimAssistInPosition = true;
             }
         }else{
             if((targetYaw) < botHeading && (3.141592654 + targetYaw) > botHeading){
                 xCorrection = 0.5;
-                telemetry.addData("Moving", "Right");
+
             }else{
                 xCorrection = -0.5;
-                telemetry.addData("Moving", "Left");
+
             }
 
             yCorrection = 0;
 
             aimAssistInPosition = false;
         }
-        telemetry.addData("Limelight tX: ", llResult.getTx());
+
 
 
         double _LFSpeed = MathLogic.Clamp(yCorrection - xCorrection, -1, 1) * maxSpeed;
@@ -501,6 +504,16 @@ public class DecodeRed extends OpMode {
         leftBackDrive.setPower(_LBSpeed);
         rightBackDrive.setPower(_RBSpeed);
         rightFrontDrive.setPower(_RFSpeed);
+
+    }
+
+    public boolean BallAccordingToColorSensor(){
+
+        if(colorSensor.alpha() >= 3){
+            return true;
+        }else{
+            return false;
+        }
 
     }
 
