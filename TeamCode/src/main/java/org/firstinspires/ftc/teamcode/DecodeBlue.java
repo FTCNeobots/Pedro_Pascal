@@ -521,7 +521,7 @@ public class DecodeBlue extends OpMode {
 
     public boolean BallAccordingToColorSensor(){
 
-        if(colorSensor.alpha() >= 3){
+        if(colorSensor.red() > 3 || colorSensor.green() > 3){
             return true;
         }else{
             return false;
