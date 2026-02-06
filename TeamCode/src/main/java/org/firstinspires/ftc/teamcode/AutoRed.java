@@ -9,6 +9,9 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,6 +19,8 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+import java.util.List;
 
 
 @Autonomous(name = "AutoRed")
@@ -32,9 +37,11 @@ public class AutoRed extends OpMode {
     private int ticksBetween = 442;
     private double sleepTime = 400;
     private double flywheelPower = 0.95;
+    private Limelight3A limelight3A;
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
+    int patternIndex = 21;
 
     private final Pose startPose = new Pose(96, 9, Math.toRadians(0));
     private final Pose scorePose = new Pose(89, 15, Math.toRadians(-26));
@@ -70,15 +77,22 @@ public class AutoRed extends OpMode {
         buildPaths();
         follower.setStartingPose(startPose);
 
+        limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight3A.pipelineSwitch(5); //April Tags obelisk
+        limelight3A.start();
+
     }
 
     @Override
     public void start() {
         opmodeTimer.resetTimer();
+        outtakeServo.setPosition(servoIn);
+        heightServo.setPosition(0.2);
+
         setPathState(0);
         flywheel.setPower(-flywheelPower);
-        heightServo.setPosition(0.2);
-        outtakeServo.setPosition(servoIn);
+
+
     }
 
     @Override
@@ -160,6 +174,18 @@ public class AutoRed extends OpMode {
     public void autonomousPathUpdate(){
         switch (pathState) {
             case 0:
+                LLResult result = limelight3A.getLatestResult();
+                List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+                for (LLResultTypes.FiducialResult fr : fiducialResults) {
+                    patternIndex = fr.getFiducialId();
+                }
+
+                if(patternIndex == 22){
+                    RunSpindexReverse();
+                }else if(patternIndex == 23){
+                    RunSpindex();
+                }
+
                 follower.followPath(scorePreload);
                 setPathState(1);
                 break;
@@ -280,6 +306,13 @@ public class AutoRed extends OpMode {
     public void RunSpindex(){
         spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spindex.setTargetPosition(-ticksBetween);
+        spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        spindex.setPower(0.5);
+    }
+
+    public void RunSpindexReverse(){
+        spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        spindex.setTargetPosition(ticksBetween);
         spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         spindex.setPower(0.5);
     }
