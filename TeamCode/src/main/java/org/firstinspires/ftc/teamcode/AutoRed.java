@@ -48,11 +48,11 @@ public class AutoRed extends OpMode {
     private final Pose angle1Pose = new Pose(94, 33, Math.toRadians(0));
     private final Pose pickup1Pose = new Pose(107, 33, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup2Pose = new Pose(112, 33, Math.toRadians(0));
-    private final Pose pickup3Pose = new Pose(135, 33, Math.toRadians(0));
+    private final Pose pickup3Pose = new Pose(129, 33, Math.toRadians(0));
     private final Pose _angle1Pose = new Pose(94, 57, Math.toRadians(0));
     private final Pose _pickup1Pose = new Pose(107, 57, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose _pickup2Pose = new Pose(112, 57, Math.toRadians(0));
-    private final Pose _pickup3Pose = new Pose(135, 57, Math.toRadians(0));
+    private final Pose _pickup3Pose = new Pose(129, 57, Math.toRadians(0));
     private final Pose finalPose = new Pose(104, 26, Math.toRadians(0));
 
     @Override
@@ -192,7 +192,7 @@ public class AutoRed extends OpMode {
             case 1:
                 if(!follower.isBusy()) {
                     EmptySpindex();
-                    intake.setPower(1);
+                    intake.setPower(-1);
                     flywheel.setPower(0);
 
                     follower.followPath(anglePickup1,true);
@@ -234,7 +234,7 @@ public class AutoRed extends OpMode {
             case 6:
                 if(!follower.isBusy()){
                     EmptySpindex();
-                    intake.setPower(1);
+                    intake.setPower(-1);
                     flywheel.setPower(0);
 
                     follower.followPath(_anglePickup1);

@@ -228,7 +228,7 @@ public class DecodeRed extends OpMode {
     }
     private void ControlIntake(){
         if(gamepad1.right_trigger > 0){
-            intake.setPower(1);
+            intake.setPower(-1);
         }else{
             intake.setPower(0);
         }
@@ -268,23 +268,23 @@ public class DecodeRed extends OpMode {
     private void SpindexCycling(){
 
         //moves the spindexer to a new intake position while saving that a ball is in the current position
-        if((gamepad1.right_bumper || BallAccordingToColorSensor()) && !spindexRunning){
+        if((gamepad1.right_bumper || BallAccordingToColorSensor() || gamepad1.left_bumper) && !spindexRunning){
             //change state of current ball location
             if(position == 1){
                 ballAt1 = true;
-                if(ColorSenseIsGreen()){
+                if(ColorSenseIsGreen() || gamepad1.left_bumper){
                     is1Green = true;
                 }
             }
             if(position == 2){
                 ballAt2 = true;
-                if(ColorSenseIsGreen()){
+                if(ColorSenseIsGreen() || gamepad1.left_bumper){
                     is2Green = true;
                 }
             }
             if(position == 3){
                 ballAt3 = true;
-                if(ColorSenseIsGreen()){
+                if(ColorSenseIsGreen() || gamepad1.left_bumper){
                     is3Green = true;
                 }
             }
@@ -438,7 +438,7 @@ public class DecodeRed extends OpMode {
         double deadZone = 2;
         double positionFar = 0.5;
         double positionClose = 0.7;
-        double offsetX = -5 ;
+        double offsetX = -3 ;
         maxSpeed = -1;
 
 
